@@ -1,0 +1,140 @@
+#ifndef LIDAR_ALIGN_SENSORS_H_
+#define LIDAR_ALIGN_SENSORS_H_
+
+#define PCL_NO_PRECOMPILE
+
+#include <cstdint>
+#include <memory>
+#include <random>
+#include <string>
+#include <vector>
+
+#include <rclcpp/rclcpp.hpp>
+
+#include <pcl/io/ply_io.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/point_cloud.h>
+#include <pcl/point_types.h>
+
+#include "lidar_align/transform.h"
+
+namespace lidar_align {
+
+typedef std::string LidarId;
+// this must be at least 64 bit and signed or things will break
+typedef long long int Timestamp;
+
+struct EIGEN_ALIGN16 PointAllFields {
+  PCL_ADD_POINT4D;
+  int32_t time_offset_us = 0;
+  uint16_t reflectivity = 0;
+  uint16_t intensity = 0;
+  uint8_t ring = 0;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
+
+typedef pcl::PointXYZI Point;
+typedef pcl::PointCloud<Point> Pointcloud;
+typedef pcl::PointCloud<PointAllFields> LoaderPointcloud;
+
+class OdomTformData {
+ public:
+  OdomTformData(Timestamp timestamp_us, Transform T_o0_ot);
+
+  const Transform& getTransform() const;
+  const Timestamp& getTimestamp() const;
+
+ private:
+  Transform T_o0_ot_;
+  Timestamp timestamp_us_;
+};
+
+class Odom {
+ public:
+  void addTransformData(const Timestamp& timestamp_us,
+                        const Transform& transform);
+
+  Transform getOdomTransform(const Timestamp timestamp_us,
+                             const size_t start_idx = 0,
+                             size_t* match_idx = nullptr) const;
+
+  bool empty() const { return data_.empty(); }
+  size_t size() const { return data_.size(); }
+
+ private:
+  std::vector<OdomTformData> data_;
+};
+
+class Scan {
+ public:
+  struct Config {
+    float min_point_distance = 0.0f;
+    float max_point_distance = 100.0f;
+    float keep_points_ratio = 0.01f;
+    float min_return_intensity = -1.0f;
+
+    bool estimate_point_times = false;
+    bool clockwise_lidar = false;
+    bool motion_compensation = true;
+    float lidar_rpm = 600.0f;
+  };
+
+  Scan(const LoaderPointcloud& pointcloud, const Config& config);
+
+  static Config getConfig(const std::shared_ptr<rclcpp::Node>& node);
+
+  void setOdomTransform(const Odom& odom, const double time_offset,
+                        const size_t start_idx, size_t* match_idx);
+
+  const Transform& getOdomTransform() const;
+
+  const Pointcloud& getRawPointcloud() const;
+
+  void getTimeAlignedPointcloud(const Transform& T_o_l,
+                                Pointcloud* pointcloud) const;
+
+ private:
+  Timestamp timestamp_us_ = 0;  // signed to allow simpler comparisons
+  Pointcloud raw_points_;
+  std::vector<Transform>
+      T_o0_ot_;  // absolute odom transform to each point in pointcloud
+
+  bool odom_transform_set_ = false;
+  bool motion_compensation_enabled_ = true;
+};
+
+class Lidar {
+ public:
+  explicit Lidar(const LidarId& lidar_id = "Lidar");
+
+  size_t getNumberOfScans() const;
+
+  size_t getTotalPoints() const;
+
+  // note points are appended so any points in *pointcloud are preserved
+  void getCombinedPointcloud(Pointcloud* pointcloud) const;
+
+  const LidarId& getId() const;
+
+  void addPointcloud(const LoaderPointcloud& pointcloud,
+                     const Scan::Config& config = Scan::Config());
+
+  void setOdomOdomTransforms(const Odom& odom, const double time_offset = 0.0);
+
+  void setOdomLidarTransform(const Transform& T_o_l);
+
+  // used for debugging frames
+  void saveCombinedPointcloud(const std::string& file_path) const;
+
+  const Transform& getOdomLidarTransform() const;
+
+ private:
+  LidarId lidar_id_;
+  Transform T_o_l_;  // transform from lidar to odometry
+
+  std::vector<Scan> scans_;
+};
+
+}  // namespace lidar_align
+
+#endif
