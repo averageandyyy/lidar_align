@@ -17,6 +17,16 @@ class Loader {
  public:
   struct Config {
     int use_n_scans = std::numeric_limits<int>::max();
+
+    // 追加: 読み込む点群 topic を限定
+    std::string pointcloud_topic = "";
+
+    // 追加: TFMessage から必要な TF だけ拾う
+    std::string tf_topic = "/tf";
+    std::string tf_static_topic = "/tf_static";
+    std::string tf_parent_frame = "";
+    std::string tf_child_frame = "";
+    bool use_tf_static = false;
   };
 
   explicit Loader(const Config& config);

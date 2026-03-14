@@ -22,7 +22,8 @@ int main(int argc, char** argv) {
 
   const std::string input_bag_path =
       node->declare_parameter<std::string>("input_bag_path", "");
-  RCLCPP_INFO(node->get_logger(), "Loading pointcloud data...");
+  RCLCPP_INFO(node->get_logger(), "Loading pointcloud data...: %s",
+              input_bag_path.c_str());
   if (input_bag_path.empty()) {
     RCLCPP_FATAL(node->get_logger(),
                  "Could not find input_bag_path parameter, exiting.");

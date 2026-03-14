@@ -15,6 +15,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(tf2_msgs REQUIRED)
 find_package(rosbag2_cpp REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED COMPONENTS common io kdtree)
@@ -42,6 +43,7 @@ ament_target_dependencies(${PROJECT_NAME}
   rclcpp
   sensor_msgs
   geometry_msgs
+  tf2_msgs
   rosbag2_cpp
   pcl_conversions
 )
@@ -69,7 +71,7 @@ install(DIRECTORY include/
   DESTINATION include
 )
 
-install(DIRECTORY launch results
+install(DIRECTORY launch results config
   DESTINATION share/${PROJECT_NAME}
 )
 
@@ -80,6 +82,7 @@ ament_export_dependencies(
   rclcpp
   sensor_msgs
   geometry_msgs
+  tf2_msgs
   rosbag2_cpp
   pcl_conversions
 )
