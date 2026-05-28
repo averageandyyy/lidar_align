@@ -17,7 +17,7 @@ class TfRelayNode(Node):
         self.pointcloud_topic = self.declare_parameter('pointcloud_topic', '/lidar/pointcloud').get_parameter_value().string_value
         self.parent_frame = self.declare_parameter('parent_frame', 'odom').get_parameter_value().string_value
         self.child_frame = self.declare_parameter('child_frame', 'base_link').get_parameter_value().string_value
-        self.tf_broadcaster = TransformBroadcaster(self)
+        self.tf_publisher = self.create_publisher(TransformStamped, '/relayed_tf', 10)
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
         self.pointcloud_sub = self.create_subscription(PointCloud2, self.pointcloud_topic, self.pointcloud_callback, 10)
@@ -35,7 +35,7 @@ class TfRelayNode(Node):
         transform_stamped.header.frame_id = self.parent_frame
         transform_stamped.child_frame_id = self.child_frame
         transform_stamped.transform = transform.transform
-        self.tf_broadcaster.sendTransform(transform_stamped)
+        self.tf_publisher.publish(transform_stamped)
 
 def main(args=None):
     rclpy.init(args=args)
