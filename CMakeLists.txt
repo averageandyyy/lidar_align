@@ -73,6 +73,11 @@ install(DIRECTORY launch results
   DESTINATION share/${PROJECT_NAME}
 )
 
+install(PROGRAMS
+  scripts/tf_relay_node.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
