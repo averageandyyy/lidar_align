@@ -256,6 +256,7 @@ void Aligner::lidarOdomTransform(Lidar* lidar, Odom* odom) {
     x[5] = global_x[2];
   } else {
     x = config_.inital_guess;
+    std::cout << "Initial guess: " << x[0] << ", " << x[1] << ", " << x[2] << ", " << x[3] << ", " << x[4] << ", " << x[5] << std::endl;
     if (x.size() != num_params) {
       x.resize(num_params, 0.0);
     }

@@ -25,6 +25,8 @@ def generate_launch_description():
             'output_pointcloud_path', default_value=default_pointcloud_path),
         DeclareLaunchArgument(
             'output_calibration_path', default_value=default_calibration_path),
+        DeclareLaunchArgument('local', default_value='false'),
+        DeclareLaunchArgument('inital_guess', default_value='0.0, 0.0, 0.0, 0.0, 0.0, 0.0'),
         Node(
             package='lidar_align',
             executable='lidar_align_node',
@@ -39,6 +41,8 @@ def generate_launch_description():
                     'output_calibration_path'),
                 'transforms_from_csv': LaunchConfiguration(
                     'transforms_from_csv'),
+                'local': LaunchConfiguration('local'),
+                'inital_guess': LaunchConfiguration('inital_guess'),
             }],
         ),
     ])
