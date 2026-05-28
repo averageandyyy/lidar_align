@@ -7,6 +7,7 @@ timestamp as the pointcloud. It then publishes the transform as a TransformStamp
 
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformListener, Buffer, TransformException
@@ -14,13 +15,13 @@ from tf2_ros import TransformListener, Buffer, TransformException
 class TfRelayNode(Node):
     def __init__(self):
         super().__init__('tf_relay_node')
-        self.pointcloud_topic = self.declare_parameter('pointcloud_topic', '/lidar/pointcloud').get_parameter_value().string_value
+        self.pointcloud_topic = self.declare_parameter('pointcloud_topic', '/right_lidar/cloud_down').get_parameter_value().string_value
         self.parent_frame = self.declare_parameter('parent_frame', 'odom').get_parameter_value().string_value
         self.child_frame = self.declare_parameter('child_frame', 'base_link').get_parameter_value().string_value
         self.tf_publisher = self.create_publisher(TransformStamped, '/relayed_tf', 10)
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
-        self.pointcloud_sub = self.create_subscription(PointCloud2, self.pointcloud_topic, self.pointcloud_callback, 10)
+        self.pointcloud_sub = self.create_subscription(PointCloud2, self.pointcloud_topic, self.pointcloud_callback, qos_profile=qos_profile_sensor_data)
         self.get_logger().info(f'TfRelayNode initialized with pointcloud topic: {self.pointcloud_topic}, parent frame: {self.parent_frame}, child frame: {self.child_frame}')
 
     def pointcloud_callback(self, msg: PointCloud2):
@@ -32,10 +33,12 @@ class TfRelayNode(Node):
         
         transform_stamped = TransformStamped()
         transform_stamped.header = msg.header
+        transform_stamped.header.stamp = self.get_clock().now().to_msg()
         transform_stamped.header.frame_id = self.parent_frame
         transform_stamped.child_frame_id = self.child_frame
         transform_stamped.transform = transform.transform
         self.tf_publisher.publish(transform_stamped)
+        # self.get_logger().info("Published relay tf")
 
 def main(args=None):
     rclpy.init(args=args)
