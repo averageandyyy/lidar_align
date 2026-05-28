@@ -178,3 +178,10 @@ Note that Maplab has two CSV exporters. This file format matches the output of `
 | `global_knn_max_dist` | Error between points is limited to this value during global optimization. | 1.0 |
 | `local_knn_max_dist` | Error between points is limited to this value during local optimization. | 0.1 |
 | `time_cal` | True to perform time offset calibration. | true |
+
+# Running with initial guess
+```bash
+ros2 launch lidar_align lidar_align.launch.py   bag_file:=/home/griffinlabs/workspaces/ros_ws/tf_and_right_cloud_2/   output_pointcloud_path:=/home/griffinlabs/workspaces/ros_ws/aligned.ply   output_calibration_path:=/home/griffinlabs/workspaces/ros_ws/calib.txt   local:=true   inital_guess:=[0.0,-0.14,1.9,-1.8391887,1.8392001,0.6332774,0.0]
+# Initial Guess derived from V3C URDF
+
+```
