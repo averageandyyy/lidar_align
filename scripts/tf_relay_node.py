@@ -9,7 +9,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2
 from geometry_msgs.msg import TransformStamped
-from tf2_ros import TransformBroadcaster, TransformListener, Buffer
+from tf2_ros import TransformBroadcaster, TransformListener, Buffer, TransformException
 
 class TfRelayNode(Node):
     def __init__(self):
@@ -32,8 +32,9 @@ class TfRelayNode(Node):
         
         transform_stamped = TransformStamped()
         transform_stamped.header = msg.header
+        transform_stamped.header.frame_id = self.parent_frame
         transform_stamped.child_frame_id = self.child_frame
-        transform_stamped.transform = transform
+        transform_stamped.transform = transform.transform
         self.tf_broadcaster.sendTransform(transform_stamped)
 
 def main(args=None):
